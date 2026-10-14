@@ -1,0 +1,79 @@
+name: COPY EDIT Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build COPY EDIT APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check Android project
+        shell: bash
+        run: |
+          echo "Checking Android project files..."
+
+          if [ ! -f "gradlew" ]; then
+            echo "::error::gradlew not found in repository root."
+            echo "Upload the complete native Android Gradle project."
+            exit 1
+          fi
+
+          if [ ! -f "settings.gradle" ] && \
+             [ ! -f "settings.gradle.kts" ]; then
+            echo "::error::Gradle settings file not found."
+            exit 1
+          fi
+
+          chmod +x gradlew
+
+          echo "Project files found."
+
+      - name: Show Gradle tasks
+        run: ./gradlew tasks --all
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: COPY-EDIT-debug-APK
+          path: |
+            **/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build reports if build fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: COPY-EDIT-build-reports
+          path: |
+            **/build/reports/
+            **/build/outputs/logs/
+          if-no-files-found: ignore
+          retention-days: 7
