@@ -46,9 +46,10 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Transform
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -387,7 +388,7 @@ fun EditorScreen(
                             modifier = Modifier.size(36.dp).testTag("mute_toggle_button")
                         ) {
                             Icon(
-                                imageVector = if (playerState.isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                                imageVector = if (playerState.isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Mute",
                                 tint = PrimaryText,
                                 modifier = Modifier.size(20.dp)
@@ -1197,7 +1198,7 @@ fun TimelineView(
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.VolumeUp, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(12.dp))
+                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Synchronized Master Audio Track (${formatTimecode(totalDurationMs)})",
