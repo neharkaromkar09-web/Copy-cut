@@ -19,13 +19,14 @@ sealed class Screen(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
-    object Templates : Screen("templates", "Templates", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome)
-    object Create : Screen("create", "Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircleOutline)
-    object Library : Screen("library", "Library", Icons.Filled.Folder, Icons.Outlined.Folder)
-    object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
+    data object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
+    data object Templates : Screen("templates", "Templates", Icons.Filled.AutoAwesome, Icons.Outlined.AutoAwesome)
+    data object Create : Screen("create", "Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircleOutline)
+    data object Library : Screen("library", "Library", Icons.Filled.Folder, Icons.Outlined.Folder)
+    data object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 
     companion object {
-        val bottomNavItems = listOf(Home, Templates, Create, Library, Profile)
+        val bottomNavItems: List<Screen>
+            get() = listOf(Home, Templates, Create, Library, Profile)
     }
 }

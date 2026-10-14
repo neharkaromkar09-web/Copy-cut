@@ -169,4 +169,15 @@ class CopyEditEngineTest {
         assertEquals(AspectRatio.RATIO_4_5, AspectRatio.fromLabel("4:5"))
         assertEquals(AspectRatio.RATIO_16_9, AspectRatio.fromLabel("unknown"))
     }
+
+    @Test
+    fun testScreen_bottomNavItemsNotNull() {
+        val items = com.example.ui.navigation.Screen.bottomNavItems
+        assertEquals(5, items.size)
+        items.forEach { screen ->
+            assertNotNull(screen)
+            assertNotNull(screen.route)
+            assertTrue(screen.route.isNotBlank())
+        }
+    }
 }
