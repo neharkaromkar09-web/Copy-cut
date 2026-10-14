@@ -1,0 +1,6 @@
+{
+  "name": "COPY EDIT",
+  "description": "Edit Once. Copy Forever. Real Android video editing and reusable template engine with cuts, keyframes, real-time preview, and MP4 export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
