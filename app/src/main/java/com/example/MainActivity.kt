@@ -70,6 +70,7 @@ import com.example.data.model.Project
 import com.example.data.model.TimelineClip
 import com.example.data.model.VNImportReport
 import com.example.data.repository.CopyEditRepository
+import com.example.media.DocumentUtils
 import com.example.media.SampleMediaProvider
 import com.example.media.VideoPlayerController
 import com.example.ui.archive.ImportReportDialog
@@ -322,16 +323,18 @@ fun CopyEditApp(
                                 },
                                 onVideoSelectedForNewProject = { uri ->
                                     val meta = SampleMediaProvider.inspectVideo(context, uri.toString())
+                                    val docMeta = DocumentUtils.queryDocumentMetadata(context, uri)
                                     val clipDuration = meta.durationMs.coerceAtLeast(3000L)
+                                    val titleName = docMeta.displayName.substringBeforeLast('.').ifBlank { "Video Edit" }
                                     val selectedProject = Project(
                                         id = UUID.randomUUID().toString(),
-                                        title = uri.lastPathSegment?.substringAfterLast("/") ?: "Video Edit",
+                                        title = titleName,
                                         aspectRatio = if (meta.height > meta.width) AspectRatio.RATIO_9_16 else AspectRatio.RATIO_16_9,
                                         clips = listOf(
                                             TimelineClip(
                                                 id = UUID.randomUUID().toString(),
                                                 sourceUri = uri.toString(),
-                                                displayName = "Imported Video",
+                                                displayName = docMeta.displayName.ifBlank { "Imported Video" },
                                                 sourceDurationMs = clipDuration,
                                                 trimStartMs = 0L,
                                                 trimEndMs = clipDuration,

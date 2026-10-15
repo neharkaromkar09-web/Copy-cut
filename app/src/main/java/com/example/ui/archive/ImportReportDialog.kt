@@ -81,12 +81,32 @@ fun ImportReportDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
-                    Text(
-                        text = "File: ${report.sourceFileName} (${if (report.isArchive) "Archive Package" else "Direct Project"})",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = SecondaryText
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "File: ${report.sourceFileName}",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryText
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Format: ${report.detectedFormat}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = PurpleAccent
+                            )
+                            if (report.fileSizeBytes > 0) {
+                                Text(
+                                    text = "• ${com.example.media.DocumentUtils.formatFileSize(report.fileSizeBytes)}",
+                                    fontSize = 12.sp,
+                                    color = SecondaryText
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // Metric Cards

@@ -103,6 +103,8 @@ data class ExportedVideo(
 data class VNImportReport(
     val sourceFileName: String,
     val isArchive: Boolean,
+    val fileSizeBytes: Long = 0L,
+    val detectedFormat: String = if (isArchive) "Archive Package" else "Direct Project",
     val recognizedClips: Int,
     val recognizedCuts: Int,
     val recognizedKeyframes: Int,

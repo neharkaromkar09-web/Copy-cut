@@ -79,8 +79,15 @@ import com.example.media.SampleMediaProvider
 import com.example.ui.components.CopyEditTopBar
 import com.example.ui.components.GradientButton
 import com.example.ui.components.PremiumCard
-import com.example.ui.theme.BlueAccent
-import com.example.ui.theme.BlueAccentLight
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.example.media.DocumentUtils
+import com.example.media.OpenProjectDocumentContract
+import com.example.ui.archive.ImportProgressDialog
+import com.example.ui.archive.ImportProgressState
 import com.example.ui.theme.BorderColor
 import com.example.ui.theme.MutedText
 import com.example.ui.theme.PrimaryGradient
@@ -118,22 +125,51 @@ fun HomeScreen(
     var showNotificationsDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
 
-    // System File Pickers
+    val coroutineScope = rememberCoroutineScope()
+    var importProgressState by remember { mutableStateOf<ImportProgressState?>(null) }
+
+    // Media Picker for Video (Standard Android Photo/Video Picker, zero-permission, no Termux interception)
     val videoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
             onVideoSelectedForNewProject(uri)
         }
     }
 
+    // Storage Access Framework Document Picker for Archives & Projects (ZIP, 7Z, JSON, VNProj, etc.)
     val archivePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+        contract = OpenProjectDocumentContract()
     ) { uri: Uri? ->
         if (uri != null) {
-            val fileName = uri.lastPathSegment ?: "project_archive.zip"
-            val report = ArchiveImporter.importArchiveOrFile(context, uri, fileName)
-            onImportedProjectLoaded(report)
+            val meta = DocumentUtils.queryDocumentMetadata(context, uri)
+            importProgressState = ImportProgressState(
+                fileName = meta.displayName,
+                fileSizeBytes = meta.sizeBytes,
+                detectedFormat = "Detecting archive format...",
+                progress = 0f,
+                statusText = "Connecting to document stream..."
+            )
+            coroutineScope.launch {
+                val report = withContext(Dispatchers.IO) {
+                    ArchiveImporter.importArchiveOrFile(
+                        context = context,
+                        uri = uri,
+                        metadata = meta,
+                        onProgress = { progress, status, format ->
+                            importProgressState = ImportProgressState(
+                                fileName = meta.displayName,
+                                fileSizeBytes = meta.sizeBytes,
+                                detectedFormat = format,
+                                progress = progress,
+                                statusText = status
+                            )
+                        }
+                    )
+                }
+                importProgressState = null
+                onImportedProjectLoaded(report)
+            }
         }
     }
 
@@ -237,8 +273,9 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         testTag = "quick_action_camera",
                         onClick = {
-                            // Camera action: pick video from phone or capture
-                            videoPickerLauncher.launch("video/*")
+                            videoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                            )
                         }
                     )
                     QuickActionPill(
@@ -247,7 +284,9 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         testTag = "quick_action_video",
                         onClick = {
-                            videoPickerLauncher.launch("video/*")
+                            videoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                            )
                         }
                     )
                     QuickActionPill(
@@ -256,15 +295,8 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         testTag = "quick_action_import",
                         onClick = {
-                            archivePickerLauncher.launch(
-                                arrayOf(
-                                    "application/zip",
-                                    "application/x-7z-compressed",
-                                    "application/json",
-                                    "application/octet-stream",
-                                    "*/*"
-                                )
-                            )
+                            // Storage Access Framework document picker with CATEGORY_OPENABLE and type "*/*"
+                            archivePickerLauncher.launch(arrayOf("*/*"))
                         }
                     )
                 }
@@ -396,6 +428,13 @@ fun HomeScreen(
                     Text("Done")
                 }
             }
+        )
+    }
+
+    importProgressState?.let { progressState ->
+        ImportProgressDialog(
+            state = progressState,
+            onDismissRequest = { /* Keep active while importing */ }
         )
     }
 }

@@ -70,6 +70,8 @@ import androidx.media3.ui.PlayerView
 import com.example.data.model.EditingTemplate
 import com.example.data.model.Project
 import com.example.data.model.TimelineClip
+import androidx.activity.result.PickVisualMediaRequest
+import com.example.media.DocumentUtils
 import com.example.media.ExportState
 import com.example.media.SampleMediaProvider
 import com.example.media.VideoExportManager
@@ -113,13 +115,14 @@ fun TemplateApplyWizard(
         mutableStateOf(SampleMediaProvider.inspectVideo(context, selectedVideoUri))
     }
 
-    // Media picker launcher
+    // Media picker launcher (Zero-permission Android Photo/Video picker)
     val videoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
+            val meta = DocumentUtils.queryDocumentMetadata(context, uri)
             selectedVideoUri = uri.toString()
-            selectedVideoName = uri.lastPathSegment ?: "Selected Video"
+            selectedVideoName = meta.displayName.ifBlank { "Selected Video" }
             videoMetadata = SampleMediaProvider.inspectVideo(context, selectedVideoUri)
         }
     }
@@ -220,7 +223,11 @@ fun TemplateApplyWizard(
                         template = template,
                         selectedVideoUri = selectedVideoUri,
                         selectedVideoName = selectedVideoName,
-                        onSelectPhoneVideo = { videoPickerLauncher.launch("video/*") },
+                        onSelectPhoneVideo = {
+                            videoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                            )
+                        },
                         onUseSampleMotion = {
                             selectedVideoUri = SampleMediaProvider.getSampleMotionUri(context)
                             selectedVideoName = "Bundled Neon Motion (16:9)"
