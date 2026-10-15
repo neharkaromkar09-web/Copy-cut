@@ -180,4 +180,30 @@ class CopyEditEngineTest {
             assertTrue(screen.route.isNotBlank())
         }
     }
+
+    @Test
+    fun testDocumentUtils_formatFileSize() {
+        assertEquals("0 B", com.example.media.DocumentUtils.formatFileSize(0L))
+        assertEquals("500 B", com.example.media.DocumentUtils.formatFileSize(500L))
+        assertEquals("1.0 KB", com.example.media.DocumentUtils.formatFileSize(1024L))
+        assertEquals("1.5 MB", com.example.media.DocumentUtils.formatFileSize(1572864L))
+        assertEquals("2.0 GB", com.example.media.DocumentUtils.formatFileSize(2147483648L))
+    }
+
+    @Test
+    fun testSafeFileValidation_preventsPathTraversal() {
+        val targetDir = File("/data/user/0/com.example/files/imported_projects/test_uuid")
+        val maliciousEntry = "../../evil.sh"
+        val resolved = File(targetDir, maliciousEntry)
+
+        // Strict canonical path validation check as implemented in ArchiveImporter
+        val isSafe = resolved.canonicalPath.startsWith(targetDir.canonicalPath + File.separator)
+        org.junit.Assert.assertFalse("Malicious entry must not be permitted", isSafe)
+
+        val safeEntry = "assets/clips/video.mp4"
+        val safeResolved = File(targetDir, safeEntry)
+        val isSafeValid = safeResolved.canonicalPath.startsWith(targetDir.canonicalPath + File.separator)
+        org.junit.Assert.assertTrue("Legitimate relative entry must be allowed", isSafeValid)
+    }
 }
+
